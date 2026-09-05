@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>论文检索 + 文献综述 Agent</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>论文检索 + 文献综述 Agent</h1>
+      <p class="subtitle">输入一个研究问题，自动检索 arXiv / Semantic Scholar，下载全文并生成带引用的综述</p>
+    </header>
+
+    <form id="query-form">
+      <textarea id="query-input" placeholder="例如：大语言模型在代码生成任务中的幻觉问题有哪些缓解方法？" rows="3"></textarea>
+      <button type="submit" id="submit-btn">开始检索</button>
+    </form>
+
+    <section id="progress" class="hidden">
+      <div class="steps">
+        <div class="step" data-step="searching">
+          <span class="dot"></span><span class="label">搜索中</span>
+        </div>
+        <div class="step" data-step="awaiting_selection">
+          <span class="dot"></span><span class="label">选择论文</span>
+        </div>
+        <div class="step" data-step="downloading">
+          <span class="dot"></span><span class="label">下载中</span>
+        </div>
+        <div class="step" data-step="generating">
+          <span class="dot"></span><span class="label">生成中</span>
+        </div>
+        <div class="step" data-step="done">
+          <span class="dot"></span><span class="label">完成</span>
+        </div>
+      </div>
+
+      <div id="log-box" class="log-box"></div>
+
+      <div id="selection-box" class="selection-box hidden">
+        <h3>选择要用于生成综述的论文（已按相关性排序，默认勾选前 <span id="default-checked-count"></span> 篇）</h3>
+        <ul id="selection-list"></ul>
+        <button type="button" id="confirm-selection-btn">确认，下载并生成综述</button>
+      </div>
+
+      <div id="candidates-box" class="candidates-box hidden">
+        <h3>已选定论文</h3>
+        <ul id="candidates-list"></ul>
+      </div>
+    </section>
+
+    <section id="result" class="hidden">
+      <h2>综述结果</h2>
+      <div id="stats-box" class="stats-box"></div>
+      <div id="answer-box" class="answer-box"></div>
+
+      <div id="citation-check-box" class="citation-check-box hidden">
+        <h3 id="citation-check-title"></h3>
+        <ul id="citation-check-list"></ul>
+      </div>
+
+      <div id="references-box" class="references-box"></div>
+
+      <div id="evidence-box" class="evidence-box hidden">
+        <button type="button" id="toggle-evidence-btn" class="link-btn">显示引用证据片段 ▾</button>
+        <ul id="evidence-list" class="hidden"></ul>
+      </div>
+    </section>
+
+    <section id="error-box" class="error-box hidden"></section>
+
+    <section id="history-section">
+      <h2>历史任务</h2>
+      <ul id="history-list" class="history-list"></ul>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

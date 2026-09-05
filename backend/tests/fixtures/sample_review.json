@@ -1,0 +1,97 @@
+{
+  "query": "sign language",
+  "answer": "Question: sign language\n\n# Sign Language Recognition and Generation: Datasets, Architectures, and Emerging Directions\n\nSign language processing research spans two primary tasks: recognition (sign-to-text) and generation (text-to-sign), with recognition receiving substantially more attention to date (Bao2026 pages 2-3). For continuous sign language recognition (CSLR), traditional architectures follow a three-stage pipeline: spatial feature extraction via 2D-CNNs, 3D-CNNs, GCNs, or transformers; temporal modeling using 1D-CNNs, spatio-temporal GCNs, RNNs, or transformers; and sequence alignment through CTC, correlation maps, reinforcement learning, or HMMs (Johnny2025 pages 2-3). These alignment-based methods have notable limitations—CTC approaches often overfit and suffer error propagation, while HMM-based methods require small vocabularies (Johnny2025 pages 2-3).\n\nRecent work addresses these constraints through alternative architectures. AutoSign introduces an autoregressive decoder-only transformer paired with 1D CNN temporal compression to directly translate pose sequences to text, bypassing gloss annotations and alignment mechanisms entirely; it leverages AraGPT2 for Arabic text generation and demonstrates improved WER on the Isharah-1000 Saudi Sign Language dataset (Johnny2025 pages 1-2, Johnny2025 pages 2-3).\n\nDataset development remains critical to progress. Resources include PHOENIX-2014T and How2Sign for recognition (Bao2026 pages 2-3), alongside Brazilian Sign Language corpora (VLibrasBD, MINDS-Libras, LIBRAS-UFOP, LSWH100, ICSL) and specialized collections like PopSign and LIBRAS-UFSC (Boddu2026 pages 3-4). Landmark detection tools such as MediaPipe and OpenPose support real-time recognition in constrained environments (Boddu2026 pages 3-4).\n\nGeneration systems have remained predominantly monolingual, typically processing only English input (Bao2026 pages 2-3). CSF addresses this gap by enabling direct multilingual-to-sign-language translation without English as an intermediary, using a nine-slot semantic schema and achieving 99.03% extraction accuracy with a compact, efficient model (Bao2026 pages 8-9).\n\nReferences\n\n1. (Bao2026 pages 2-3): Bao, Tran Sy. \"CSF: Contrastive Semantic Features for Direct Multilingual Sign Language Generation.\" 2026.\n\n2. (Johnny2025 pages 2-3): Johnny, Samuel Ebimobowei, et al. \"AutoSign: Direct Pose-to-Text Translation for Continuous Sign Language Recognition.\" *arXiv*, 26 July 2025, arXiv:2507.19840.\n\n3. (Johnny2025 pages 1-2): Johnny, Samuel Ebimobowei, et al. \"AutoSign: Direct Pose-to-Text Translation for Continuous Sign Language Recognition.\" *arXiv*, 26 July 2025, arXiv:2507.19840.\n\n4. (Boddu2026 pages 3-4): Boddu, Raviteja, et al. \"The In-Car Sign Language Corpus (ICSL): A Multi-Modal Resource for Constrained-Space Sign Language Recognition.\" *arXiv*, 13 July 2026, arxiv.org/abs/2607.11341.\n\n5. (Bao2026 pages 8-9): Bao, Tran Sy. \"CSF: Contrastive Semantic Features for Direct Multilingual Sign Language Generation.\" 2026.",
+  "references": "1. (Bao2026 pages 2-3): Bao, Tran Sy. \"CSF: Contrastive Semantic Features for Direct Multilingual Sign Language Generation.\" 2026.\n\n2. (Johnny2025 pages 2-3): Johnny, Samuel Ebimobowei, et al. \"AutoSign: Direct Pose-to-Text Translation for Continuous Sign Language Recognition.\" *arXiv*, 26 July 2025, arXiv:2507.19840.\n\n3. (Johnny2025 pages 1-2): Johnny, Samuel Ebimobowei, et al. \"AutoSign: Direct Pose-to-Text Translation for Continuous Sign Language Recognition.\" *arXiv*, 26 July 2025, arXiv:2507.19840.\n\n4. (Boddu2026 pages 3-4): Boddu, Raviteja, et al. \"The In-Car Sign Language Corpus (ICSL): A Multi-Modal Resource for Constrained-Space Sign Language Recognition.\" *arXiv*, 13 July 2026, arxiv.org/abs/2607.11341.\n\n5. (Bao2026 pages 8-9): Bao, Tran Sy. \"CSF: Contrastive Semantic Features for Direct Multilingual Sign Language Generation.\" 2026.",
+  "evidence": [
+    {
+      "context": "The excerpt reviews SLR datasets and methods: PopSign (one-handed signing, smartphone FOV), LIBRAS-UFSC and Libras National Inventory (linguistic documentation, controlled settings), and Table 1 listing Brazilian Sign Language datasets (VLibrasBD, MINDS-Libras, LIBRAS-UFOP, LSWH100, and proposed ICSL) with modalities, tasks, scope, and annotations. It also covers SLR architectures—CNN-BiLSTM, Graph Convolutional Networks, Transformers—and landmark detection tools like MediaPipe and OpenPose, discussing efficiency vs. accuracy tradeoffs for real-time recognition in constrained environments like vehicle interiors.",
+      "score": 9,
+      "source": "Boddu2026 pages 3-4",
+      "citation": "Boddu, Raviteja, et al. \"The In-Car Sign Language Corpus (ICSL): A Multi-Modal Resource for Constrained-Space Sign Language Recognition.\" *arXiv*, 13 July 2026, arxiv.org/abs/2607.11341."
+    },
+    {
+      "context": "AutoSign proposes an autoregressive decoder-only transformer combined with a 1D CNN temporal compression module for continuous sign language recognition (CSLR), directly translating pose sequences to Arabic text without intermediate gloss supervision. It bypasses traditional CTC/HMM alignment-based pipelines, uses AraGPT2 (pre-trained Arabic decoder transformer) for text generation, and applies CNNs to compress pose sequences before decoding. The model achieves improved Word Error Rate (WER) on the Isharah-1000 dataset (Saudi Sign Language), showing hand and body gestures are most discriminative for signer-independent CSLR.",
+      "score": 9,
+      "source": "Johnny2025 pages 1-2",
+      "citation": "Johnny, Samuel Ebimobowei, et al. \"AutoSign: Direct Pose-to-Text Translation for Continuous Sign Language Recognition.\" *arXiv*, 26 July 2025, arXiv:2507.19840."
+    },
+    {
+      "context": "Traditional CSLR architectures have three stages: spatial feature extraction using 2D-CNNs, 3D-CNNs, GCNs, or transformers; temporal modeling using 1D-CNNs, spatio-temporal GCNs, RNNs, or transformers; and sequence alignment using CTC, correlation maps, reinforcement learning, or HMMs. CTC-based approaches often overfit and suffer error propagation, while HMM-based methods need small vocabularies. AutoSign proposes a decoder-only transformer for end-to-end autoregressive pose-to-text translation, using 1D CNNs for temporal compression, avoiding gloss annotations and alignment mechanisms, tested on the Isharah Arabic Sign Language dataset.",
+      "score": 9,
+      "source": "Johnny2025 pages 2-3",
+      "citation": "Johnny, Samuel Ebimobowei, et al. \"AutoSign: Direct Pose-to-Text Translation for Continuous Sign Language Recognition.\" *arXiv*, 26 July 2025, arXiv:2507.19840."
+    },
+    {
+      "context": "The excerpt lists references relevant to sign language recognition methods and datasets, including surveys and deep learning approaches . It also lists several sign language datasets: Libras-UFOP , Corpus da Língua Brasileira de Sinais (Acre), VLibrasBD, LSWH100 handshape dataset, 3D-LEX v1.0 (ASL and NGT lexicons), Brazilian Sign Language gesture database , and PopSign ASL v1.0 smartphone-collected dataset.",
+      "score": 8,
+      "source": "Boddu2026 pages 10-11",
+      "citation": "Boddu, Raviteja, et al. \"The In-Car Sign Language Corpus (ICSL): A Multi-Modal Resource for Constrained-Space Sign Language Recognition.\" *arXiv*, 13 July 2026, arxiv.org/abs/2607.11341."
+    },
+    {
+      "context": "The excerpt notes that neural approaches to sign language have primarily focused on recognition (sign-to-text) rather than generation. Large-scale datasets including PHOENIX-2014T and How2Sign have enabled significant progress in continuous sign language recognition. However, generation systems remain predominantly monolingual, typically processing only English input.",
+      "score": 8,
+      "source": "Bao2026 pages 2-3",
+      "citation": "Bao, Tran Sy. \"CSF: Contrastive Semantic Features for Direct Multilingual Sign Language Generation.\" 2026."
+    },
+    {
+      "context": "This paper introduces a training pipeline for Isolated Sign Language Recognition (ISLR) using image/video augmentations and an IoU-balanced classification loss with an added regression head to handle low data quality and varying sign speeds. It achieves state-of-the-art results on WLASL and Slovo datasets. The introduction discusses challenges in SLR: variability in gesturing speed, complex spatial-temporal features, limited high-quality datasets, and real-world conditions like lighting/background. It distinguishes ISLR, CSLR, and SLT tasks within sign language understanding.",
+      "score": 8,
+      "source": "Kvanchiani2025 pages 1-2",
+      "citation": "Kvanchiani, Karina, et al. \"Training Strategies for Isolated Sign Language Recognition.\" *arXiv*, 12 May 2025, arXiv:2412.11553."
+    },
+    {
+      "context": "The excerpt describes CSF (Contrastive Semantic Features), a framework for direct multilingual-to-sign-language translation that bypasses English as an intermediary. It uses a nine-slot semantic schema for sign language grammar, a 35-class condition taxonomy, and achieves 99.03% extraction accuracy with a compact 0.74 MB model and 3.02ms real-time inference. References include foundational neural sign language translation work , How2Sign dataset, cross-lingual representation learning (XLM-R), language-agnostic BERT embeddings, Transformer architecture (Attention is All You Need), and BPE subword tokenization—key components underlying neural network-based sign language translation systems.",
+      "score": 8,
+      "source": "Bao2026 pages 8-9",
+      "citation": "Bao, Tran Sy. \"CSF: Contrastive Semantic Features for Direct Multilingual Sign Language Generation.\" 2026."
+    },
+    {
+      "context": "This excerpt is a reference list containing citations relevant to sign language translation using neural networks, including Camgoz et al. \"Neural sign language translation\" , Guo et al. \"Hierarchical LSTM for sign language translation\" , Guo et al. \"Hierarchical recurrent deep fusion...for sign language translation\" , Li et al. \"Tspnet: Hierarchical feature learning via temporal semantic pyramid for sign language translation\" , and Zhou et al. \"Spatial-temporal multi-cue network for sign language recognition and translation\" . These represent key neural network-based approaches to sign language translation.",
+      "score": 8,
+      "source": "Zhou2024 pages 14-14",
+      "citation": "Zhou, Wengang, et al. \"Scaling up Multimodal Pre-training for Sign Language Understanding.\" *IEEE Transactions on Circuits and Systems for Video Technology*, June 2024."
+    },
+    {
+      "context": "This excerpt is a references list from a sign language paper, listing numerous works on sign language recognition, translation, and retrieval methods (e.g., CNN-LSTM-HMM approaches, weakly supervised learning, temporal lift pooling, cross-lingual contrastive retrieval like CiCo, hierarchical LSTM translation, natural language-assisted recognition) and datasets (BBC-Oxford British Sign Language dataset, BSL). It covers surveys on sign language recognition and machine translation, and specific techniques including skeleton-aware multimodal recognition, motion-aware masked autoencoders, and iterative alignment networks for continuous sign language recognition.",
+      "score": 6,
+      "source": "Zhou2024 pages 14-14",
+      "citation": "Zhou, Wengang, et al. \"Scaling up Multimodal Pre-training for Sign Language Understanding.\" *IEEE Transactions on Circuits and Systems for Video Technology*, June 2024."
+    },
+    {
+      "context": "The excerpt's references list key works relevant to sign language recognition/translation methods and datasets:  'Neural sign language translation';  introduce How2Sign, a large-scale multimodal ASL dataset; Stokoe (1960) foundational work on sign language linguistic structure. Also references cross-lingual representation learning (XLM-R, LaBSE) and transformer/BPE methods used as underlying techniques. The CSF paper itself proposes a semantic-schema-based multilingual-to-sign-language translation framework with a 35-class condition taxonomy and releases a multilingual training dataset (18,885 samples).",
+      "score": 6,
+      "source": "Bao2026 pages 8-9",
+      "citation": "Bao, Tran Sy. \"CSF: Contrastive Semantic Features for Direct Multilingual Sign Language Generation.\" 2026."
+    },
+    {
+      "context": "This excerpt is a reference list from AutoSign paper covering continuous sign language recognition (CSLR) methods and datasets: BSL-1K, BOBSL, Isharah (multi-scene CSLR dataset), OpenPose for pose estimation, and various models like SlowFast networks, Swin-MSTP, SignBERT, hand-model-aware recognition, temporal lift pooling, correlation networks, self-emphasizing networks, spatial-temporal transformers, Sign2Pose, and distillation-based approaches for CSLR. Also references a survey on 25 years of CSLR research advances and challenges.",
+      "score": 6,
+      "source": "Johnny2025 pages 7-7",
+      "citation": "Johnny, Samuel Ebimobowei, et al. \"AutoSign: Direct Pose-to-Text Translation for Continuous Sign Language Recognition.\" *arXiv*, 26 July 2025, arXiv:2507.19840."
+    },
+    {
+      "context": "This excerpt is a reference list citing various sign language recognition and continuous sign language recognition papers/datasets, including FluentSigners-50, LSA64, AUTSL (Turkish sign language dataset), fingerspelling recognition in British Sign Language, gloss-free sign language translation, and natural language-assisted sign language recognition. It also includes a supplementary table listing augmentation strategies (Color Jitter, Random Noise, Sharpness, Flip, Random Erasing, CutMix, MixUp, video augmentations like Random Boundary Shift, Random Drop, Speed Up) used for training strategies in isolated sign language recognition, showing methods to improve model robustness.",
+      "score": 6,
+      "source": "Kvanchiani2025 pages 10-11",
+      "citation": "Kvanchiani, Karina, et al. \"Training Strategies for Isolated Sign Language Recognition.\" *arXiv*, 12 May 2025, arXiv:2412.11553."
+    },
+    {
+      "context": "The CSF framework's future work explicitly includes integrating with sign avatar rendering systems, extending condition/event taxonomies via deaf community collaboration, and transferring to sign languages beyond ASL. The paper's core contribution is a semantic-feature-based (not English-intermediary) approach to sign language generation, using a nine-slot semantic schema and 35-class condition taxonomy, with a compact model for real-time inference (3.02ms) potentially useful for avatar-driven sign language production pipelines using deep learning.",
+      "score": 6,
+      "source": "Bao2026 pages 8-9",
+      "citation": "Bao, Tran Sy. \"CSF: Contrastive Semantic Features for Direct Multilingual Sign Language Generation.\" 2026."
+    },
+    {
+      "context": "This excerpt is a reference list from a survey on sign language understanding, listing works on continuous sign language recognition (CSLR) methods, many combining CNNs (and CNN-LSTM/HMM hybrids) with sequence modeling. Relevant entries include Koller et al.'s weakly supervised multi-stream CNN-LSTM-HMM approaches, Re-sign and Deep sign (CNN-HMM hybrids), Cui et al.'s deep neural framework, Pu et al.'s cross-modality augmentation and iterative alignment network, Hao et al.'s self-mutual distillation, Zuo and Mak's C2SLR (consistency-enhanced), and Hu et al.'s temporal lift pooling—these represent CNN- and transformer-based CSLR methods.",
+      "score": 6,
+      "source": "Zhou2024 pages 14-14",
+      "citation": "Zhou, Wengang, et al. \"Scaling up Multimodal Pre-training for Sign Language Understanding.\" *IEEE Transactions on Circuits and Systems for Video Technology*, June 2024."
+    },
+    {
+      "context": "Excerpt covers CSLR methods: early works used 2D-CNNs with temporal modeling (HMM, encoder-decoder), later CTC became mainstream for sequence correspondence between visual sign features and glosses, enhanced with attention-aware LSTM decoder and soft-DTW alignment. CSLR can extend to SLT via LSTM or transformer decoders. Also mentions GCNs (using pose data) as alternative to CNNs for recognition, treating joints as nodes.",
+      "score": 6,
+      "source": "Zhou2024 pages 2-3",
+      "citation": "Zhou, Wengang, et al. \"Scaling up Multimodal Pre-training for Sign Language Understanding.\" *IEEE Transactions on Circuits and Systems for Video Technology*, June 2024."
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+venv/
+__pycache__/
+*.pyc
+.env
+papers/*/
+!papers/.gitkeep
+.pytest_cache/
+jobs.db
+.claude/scheduled_tasks.lock
