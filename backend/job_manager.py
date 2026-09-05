@@ -36,14 +36,11 @@ class Job:
     answer: Optional[str] = None
     references: Optional[str] = None
     # None = not checked yet; [] = checked, nothing flagged; non-empty =
-    # citations the verifier couldn't back up against the evidence pool.
-    # See verifier.py.
+    # citations the verifier couldn't back up.
     citation_flags: Optional[list[dict]] = None
-    # True = every verification attempt failed (see pipeline.py's except
-    # block) — distinct from citation_flags staying None, which by itself
-    # can't tell "never ran" apart from "ran and failed". Without this the
-    # UI had no way to show "we tried to check this and couldn't" instead of
-    # just silently not showing the citation-check box at all.
+    # True = every verification attempt failed — distinct from
+    # citation_flags staying None (never ran), so the UI can show "checked,
+    # but failed" instead of hiding the box entirely.
     citation_check_failed: bool = False
     cost: Optional[float] = None
     duration: Optional[float] = None

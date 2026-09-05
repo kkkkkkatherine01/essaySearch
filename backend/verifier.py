@@ -83,9 +83,7 @@ def _cited_sources_in(chunk: str) -> set[str]:
 
 
 # Full key format, e.g. "Johnny2025 pages 1-2" — matches evidence[]["source"]
-# exactly, because paper-qa derives the citation marker text it writes into
-# the answer FROM that same source field. That's what makes a pure string
-# comparison meaningful here rather than a coincidence.
+# exactly, since paper-qa derives the citation text from that same field.
 _CITATION_KEY_FULL = re.compile(r"[A-Za-z][\w\-]{1,30}\d{2,4}[a-z]?\s+pages\s+[\d\-]+")
 
 
@@ -109,17 +107,13 @@ def _extract_citation_occurrences(answer: str) -> list[tuple[str, str]]:
 
 
 def check_citation_keys_exist(answer: str, evidence: list[dict]) -> list[dict]:
-    """Deterministic layer — pure string comparison, zero LLM calls, zero
-    run-to-run variance: does every citation key used in the answer
-    correspond to an actual entry in the evidence pool?
+    """Deterministic layer: pure string comparison, no LLM call — does every
+    citation key in the answer exist in the evidence pool?
 
-    This complements (does not replace) the LLM-based verify_citations
-    below. It can only ever catch no_matching_source (the key doesn't exist
-    anywhere in the pool) — whether an existing source's content actually
-    supports the specific claim (not_supported) is a semantic judgment call
-    no string comparison can make. Framed honestly: this is the
-    "deterministic check" half of a two-layer citation QA design, not a
-    cheaper substitute for the LLM half."""
+    Complements verify_citations below rather than replacing it: this can
+    only catch no_matching_source (key doesn't exist anywhere). Whether an
+    existing source's content actually supports the claim (not_supported)
+    is a semantic call no string comparison can make."""
     if not answer or not evidence:
         return []
     known_keys = {e["source"] for e in evidence}
@@ -142,20 +136,14 @@ def check_citation_keys_exist(answer: str, evidence: list[dict]) -> list[dict]:
 
 
 def check_citation_density(answer: str) -> list[dict]:
-    """Deterministic layer — flags paragraphs in the answer body that carry
-    zero citation markers at all.
+    """Deterministic layer: flags paragraphs with zero citation markers.
 
-    Deliberately coarser than "every claim is cited": deciding whether a
-    given SENTENCE is a factual claim that needs a citation (vs. a
-    transition/framing sentence that doesn't) is itself a judgment call no
-    regex can make reliably. Flagging a whole paragraph with NO citations
-    anywhere in it is a much safer, purely mechanical bar — it will miss
-    individual uncited sentences inside an otherwise-cited paragraph, and
-    that's an accepted limitation, not a bug. Not merged into
-    verify_citations()'s output (see pipeline.py): a citation-free paragraph
-    isn't necessarily wrong (a closing summary paragraph legitimately might
-    not need one), so this is reported separately as a structural signal,
-    not folded into the same "likely error" list."""
+    Coarser than "every claim is cited" on purpose — judging whether a
+    single sentence needs a citation is a semantic call no regex can make
+    reliably, so this only flags a whole paragraph with none at all (misses
+    individual uncited sentences in an otherwise-cited paragraph). Reported
+    separately from verify_citations's output, not merged in: a citation-
+    free paragraph (e.g. a closing summary) isn't necessarily wrong."""
     if not answer:
         return []
     body = answer.split("\nReferences\n")[0]
@@ -178,22 +166,11 @@ def check_citation_density(answer: str) -> list[dict]:
 
 
 def _build_prompt(chunk: str, evidence: list[dict]) -> str:
-    # Sending the FULL evidence pool (15+ entries, full context text) on
-    # every chunk was the actual cause of a real reliability problem: it
-    # pushed structured-output failures to ~70% per attempt in testing (see
-    # 问题记录.txt). The first fix tried was truncating every entry's context
-    # to a fixed length — that reduced the failure rate but destroyed
-    # judgment quality along with it (a recall case broke because the exact
-    # detail that would have exposed the mismatch was in the truncated part,
-    # and the untouched baseline's false-positive count went up for the same
-    # reason). The correct fix is more targeted: a chunk only needs FULL
-    # context for the sources it actually cites — that's what the
-    # not_supported check needs — plus a compact list of every OTHER source
-    # identifier in the pool, which is all the no_matching_source check
-    # needs (does this citation exist anywhere at all). Evidence text is
-    # extracted from downloaded PDFs — external content nobody on our side
-    # wrote, unlike `chunk` which is our own model's output — demarcated the
-    # same way search_agent.py does for abstracts.
+    # Sending the full evidence pool (15+ entries) on every chunk pushed
+    # structured-output failure rates to ~70%. A chunk only needs full
+    # context for the sources it actually cites (for not_supported); every
+    # other source just needs to be listed by id (for no_matching_source).
+    # Evidence text comes from downloaded PDFs — untrusted, unlike `chunk`.
     cited = _cited_sources_in(chunk)
     relevant = [e for e in evidence if e["source"] in cited]
     other_sources = sorted({e["source"] for e in evidence if e["source"] not in cited})
@@ -220,14 +197,10 @@ def _build_prompt(chunk: str, evidence: list[dict]) -> str:
     )
 
 
-# Sanity cap on how many issues one chunk's verification pass can plausibly
-# report. Forced structured output can rarely degenerate into a repetition
-# loop (observed once in testing: 664 near-duplicate "issues" for a
-# 15-citation answer verified in one shot) instead of erroring out cleanly —
-# silently showing that to the user would look like the whole feature is
-# broken. A single paragraph flagging this many claims is implausible
-# regardless of how bad it is, so treat it as a bad response rather than
-# data. Lower than before now that each call only covers one paragraph.
+# Sanity cap on issues per chunk. Forced structured output can rarely
+# degenerate into a repetition loop (hundreds of near-duplicate "issues")
+# instead of erroring out cleanly — treat an implausible count as a bad
+# response, not data.
 _MAX_PLAUSIBLE_ISSUES_PER_CHUNK = 10
 
 
@@ -243,11 +216,9 @@ async def _verify_chunk_once(chunk: str, evidence: list[dict]) -> list[dict]:
     )
     block = next(b for b in msg.content if b.type == "tool_use")
     issues = block.input.get("issues", [])
-    # Observed in testing: the model occasionally returns `issues` as a
-    # malformed/truncated JSON string (e.g. "[\n  {") instead of an actual
-    # array — still valid JSON overall so the SDK doesn't error, but taking
-    # len() of that string silently reported it as hundreds of "issues".
-    # Validate the shape rather than trusting it.
+    # The model occasionally returns `issues` as a truncated JSON string
+    # (e.g. "[\n  {") instead of an array — still valid JSON, so the SDK
+    # won't error, but len() of a string masquerades as hundreds of issues.
     if not isinstance(issues, list):
         raise ValueError("malformed 'issues' field (not a list) — discarding response")
     issues = [i for i in issues if isinstance(i, dict) and "claim" in i]
@@ -257,10 +228,8 @@ async def _verify_chunk_once(chunk: str, evidence: list[dict]) -> list[dict]:
 
 
 async def _verify_chunk(chunk: str, evidence: list[dict]) -> list[dict]:
-    """One chunk, with one retry on a malformed response — a transient
-    malformed generation usually isn't sticky (see 问题记录.txt for the
-    measured single-attempt failure rate and why it's high enough that a
-    caller needs to actually handle it, not just hope)."""
+    """One chunk, with one retry on a malformed response — a transient bad
+    generation usually isn't sticky."""
     try:
         return await _verify_chunk_once(chunk, evidence)
     except (ValueError, StopIteration):
@@ -268,35 +237,20 @@ async def _verify_chunk(chunk: str, evidence: list[dict]) -> list[dict]:
 
 
 async def verify_citations(answer: str, evidence: list[dict]) -> list[dict]:
-    """Ask a cheap model to fact-check the generated review against the
-    evidence pool paper-qa actually collected, flagging claims whose
-    citation doesn't correspond to anything in the pool (fabricated) or
+    """Fact-check the generated review against paper-qa's evidence pool,
+    flagging claims whose citation doesn't exist in the pool (fabricated) or
     whose cited evidence doesn't actually support the claim (mismatched).
 
-    Checks the answer one paragraph at a time (each call still sees the full
-    evidence pool, so a chunk never false-flags a claim just because its
-    real supporting evidence happens to be discussed in a different
-    paragraph) rather than the whole answer in one shot. This isn't just
-    about token limits — a real review with a large evidence pool (15+
-    entries) pushed the single-shot failure rate to ~70% per attempt in
-    testing (see 问题记录.txt), high enough that even a retry left close to
-    a coin-flip chance of the whole check failing. Chunking cut this back
-    down the same way batching fixed search_agent.py's scoring truncation.
+    Checks one paragraph at a time rather than the whole answer in one shot
+    — a large evidence pool (15+ entries) pushed single-shot failure rates
+    to ~70%, high enough that even a retry left close to a coin flip. A
+    chunk that fails both attempts is dropped rather than failing the whole
+    check; this only raises if every chunk failed.
 
-    This is a quality-control aid, not part of the critical path: it never
-    modifies or blocks the answer, only surfaces what it finds. A chunk that
-    fails both attempts is dropped (partial coverage), not treated as a
-    total failure — only raises if every chunk failed, so the caller can
-    tell "checked, found nothing" apart from "couldn't check at all".
-
-    Runs the deterministic key-existence check (check_citation_keys_exist)
-    first and merges it in regardless of how the LLM pass goes — those
-    findings are 100% reliable and free, so there's no reason to make them
-    depend on (or be duplicated by) the LLM call. The LLM pass still runs in
-    full: it's the only layer that can catch not_supported, and it may also
-    independently name a fabricated citation the deterministic regex missed
-    due to a formatting quirk — deduped against the deterministic findings
-    by cited_as so the same issue never shows up twice."""
+    Always runs the deterministic key-existence check first and merges it
+    in — those findings are free and 100% reliable. The LLM pass still runs
+    in full since it's the only layer that catches not_supported, deduped
+    against the deterministic findings by cited_as."""
     if not answer or not evidence:
         return []
 

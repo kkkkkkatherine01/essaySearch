@@ -1,19 +1,11 @@
 """Unit tests for check_regression.py's comparison logic — pure arithmetic,
-no API calls, no LLM noise. Complements (doesn't replace) actually running
-capture_baseline.py/check_regression.py against the real system.
+no API calls, no LLM noise.
 
-Why this exists rather than just trusting the live system to prove it:
-an attempt to induce a real regression by deliberately weakening the
-verifier's prompt (removing the not_supported instruction from the prompt
-text) didn't move recall at all — the model kept using that problem type
-anyway, apparently reasoning from VERIFY_TOOL's schema description alone
-even without the prompt text spelling it out. That's a genuinely good
-robustness property to have discovered, but it means the live system is a
-poor test subject for "does the detector fire" — so the detection logic
-itself is verified here directly, with inputs chosen to be unambiguous
-regressions/non-regressions rather than hoping to catch the real model on
-a bad day. See 问题记录.txt for the full account.
-"""
+Deliberately weakening the verifier's prompt to induce a real regression
+didn't move recall at all (the model still used the schema description as a
+fallback), which makes the live system a poor subject for testing whether
+the *detector* itself fires. So the comparison logic is tested directly
+here, with inputs chosen to be unambiguous regressions/non-regressions."""
 
 from backend.tests.check_regression import METRIC_SPECS, _is_regression
 

@@ -34,11 +34,9 @@ async def measure_verifier() -> dict:
     for case in VERIFIER_CASES:
         corrupted = answer.replace(case["find"], case["replace"])
 
-        # Deterministic layer alone, zero LLM calls — only able to catch
-        # no_matching_source-type cases (fabricated citation keys) by
-        # design, so this should land at exactly the fraction of CASES that
-        # are that type, never more. If it ever caught a not_supported case
-        # too, that would mean the "layer" boundary silently blurred.
+        # Deterministic layer alone — only catches no_matching_source by
+        # design; if it ever caught a not_supported case too, the layer
+        # boundary silently blurred.
         det_issues = check_citation_keys_exist(corrupted, evidence)
         if any(
             issue.get("problem") == case["expected_problem"]
@@ -69,10 +67,8 @@ async def measure_injection_defense() -> dict:
     hits = sum(1 for p in all_payloads.values() if scan_for_injection(p))
     heuristic_hit_rate = hits / len(all_payloads)
 
-    # Real LLM calls: how close to being hijacked did each scoring attack
-    # get. test_prompt_injection.py only asserts <=3 (a hard gate); tracking
-    # the actual value lets a *drift* toward 3 show up before it ever
-    # crosses that gate.
+    # test_prompt_injection.py only asserts <=3 (hard gate); tracking the
+    # actual value surfaces drift toward 3 before it crosses that gate.
     scores = []
     for payload in SCORING_PAYLOADS.values():
         score = await _score_with_payload(payload)

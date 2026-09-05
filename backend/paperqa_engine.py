@@ -24,17 +24,14 @@ def _llm_config_without_temperature(model: str) -> dict:
 
 async def run_paperqa(query: str) -> dict:
     """Point paper-qa's agent at the shared paper library (all PDFs any job
-    has ever downloaded, deduped by paper id — see download.py) and let it
-    gather evidence + generate a cited answer. Search/download is handled
-    entirely by our own pipeline before this is called.
+    has downloaded, deduped by paper id) and let it gather evidence and
+    generate a cited answer. Search/download already happened before this.
 
-    Reusing the same paper_directory/index_directory across every job is
-    what lets paper-qa's own incremental indexing (paperqa/agents/search.py
-    process_file: `if not await search_index.filecheck(...)`) skip
-    re-parsing/re-embedding/re-summarizing a paper it already indexed in a
-    previous job. The tradeoff: agent_query's tools see the whole library,
-    not just this job's selected papers — acceptable since evidence scoring
-    already filters for relevance (verified empirically, see 问题记录.txt)."""
+    Every job shares the same paper_directory/index_directory so paper-qa's
+    own incremental index (paperqa/agents/search.py's filecheck) skips
+    papers it already indexed. Tradeoff: agent_query can see the whole
+    library, not just this job's selection — acceptable since evidence
+    scoring already filters for relevance."""
     model = config.ANTHROPIC_MODEL
     llm_config = _llm_config_without_temperature(model)
 
@@ -69,9 +66,8 @@ async def run_paperqa(query: str) -> dict:
 
     started_at = time.monotonic()
     response = await agent_query(query=query, settings=settings)
-    # response.duration is a vestigial field in this paper-qa version — it's
-    # never actually populated by agent_query, always stays at its 0.0
-    # default — so time it ourselves.
+    # response.duration is never populated by this paper-qa version (stays
+    # 0.0) — time it ourselves.
     duration = time.monotonic() - started_at
     session = response.session
 

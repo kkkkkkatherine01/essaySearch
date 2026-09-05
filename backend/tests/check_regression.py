@@ -1,19 +1,13 @@
 """Compare a fresh measurement against the stored regression baseline
-(backend/tests/baselines/metrics.json) and report anything that moved
-further than run-to-run noise would explain.
+(backend/tests/baselines/metrics.json) and flag anything that moved further
+than run-to-run noise would explain.
 
-This is a different kind of check than test_prompt_injection.py's fixed
-thresholds. Those catch "is this fundamentally broken" (a hard floor/ceiling
-that shouldn't move). This catches "did this get quietly worse compared to
-where it used to be" — which matters most right after a prompt edit or a
-model version bump, where nothing crashes and every fixed-threshold test
-still passes, but the underlying behavior has drifted. A metric creeping
-from consistently ~0.3 to consistently ~2.8 on a scale gated at <=3 would
-sail through every existing test while being a real, worth-knowing change.
+Different from test_prompt_injection.py's fixed thresholds: those catch
+"is this fundamentally broken", this catches "did this quietly get worse"
+— drift a fixed-threshold test won't see until it crosses the gate.
 
-Not a CI gate by default (this project has no CI) — run it by hand before
-committing to a prompt/model change you're unsure about, or wire it into a
-CI step yourself; it exits non-zero on regression either way.
+Not wired into CI — run by hand before a prompt/model change you're unsure
+about. Exits non-zero on regression.
 
 Run: python -m backend.tests.check_regression
 """
@@ -27,18 +21,16 @@ from backend.tests.baseline_metrics import measure_all
 
 BASELINE_PATH = Path(__file__).parent / "baselines" / "metrics.json"
 
-# direction: which way is "bad" for this metric. tolerance: how far past the
-# worst historically-observed value still counts as noise rather than a real
-# regression — sized to roughly "one whole test case flipping outcome", not
-# a hair-trigger on float jitter. Tuned against noise actually measured in
-# this project (verifier recall swings 67%-100% run to run on 3 cases;
-# see 问题记录.txt), not guessed.
+# direction: which way is "bad". tolerance: how far past the historical
+# worst still counts as noise, not a real regression — sized to roughly
+# "one test case flipping outcome", not a hair-trigger on float jitter.
+# Tuned against noise actually measured here (verifier recall swings
+# 67%-100% run to run on 3 cases), not guessed.
 METRIC_SPECS = {
     "verifier_recall": {"direction": "higher_is_better", "tolerance": 0.34},
-    # Pure code, no LLM call — structurally always exactly 1/3 (it can only
-    # ever catch the one no_matching_source case among the 3 planted
-    # errors, by design). Tight tolerance is deliberate: unlike the other
-    # metrics, any drift here means the regex/comparison logic broke, not
+    # Pure code, no LLM call — structurally always exactly 1/3 (only ever
+    # catches the one no_matching_source case among 3 planted errors).
+    # Tight tolerance: drift here means the comparison logic broke, not
     # LLM noise.
     "verifier_deterministic_layer_recall": {"direction": "higher_is_better", "tolerance": 0.05},
     "verifier_false_positive_count": {"direction": "lower_is_better", "tolerance": 2.0},

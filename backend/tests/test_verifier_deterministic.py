@@ -1,13 +1,10 @@
 """Unit tests for the deterministic (non-LLM) half of verifier.py's citation
 checking — pure string comparison, no API calls, no run-to-run noise.
 
-These exist because check_citation_keys_exist/check_citation_density are
-exactly the kind of logic that's cheap to get subtly wrong (regex edge
-cases) and expensive to notice being wrong (a citation-key bug would only
-ever surface as "the LLM layer happened to catch it anyway" until one day
-it didn't). See 问题记录.txt for the real fixture bug this caught the first
-time it ran (sentence extraction merging a heading into the next sentence).
-"""
+check_citation_keys_exist/check_citation_density are cheap to get subtly
+wrong (regex edge cases) and expensive to notice being wrong — a bug here
+would only ever surface as "the LLM layer happened to catch it anyway"
+until one day it didn't."""
 
 import json
 
@@ -36,9 +33,8 @@ def test_fabricated_citation_is_caught_with_zero_llm_calls():
     assert issues[0]["cited_as"] == "(Smith2023 pages 5-6)"
     assert issues[0]["problem"] == "no_matching_source"
     assert issues[0]["detected_by"] == "deterministic"
-    # The extracted "claim" sentence should be the actual sentence the
-    # fabricated citation appears in, not a heading+sentence blob merged
-    # together (the real bug this caught on first run — see 问题记录.txt).
+    # The extracted "claim" should be the actual sentence the fabricated
+    # citation appears in, not a heading+sentence blob merged together.
     assert issues[0]["claim"].startswith("Sign language processing research")
     assert "Question:" not in issues[0]["claim"]
 

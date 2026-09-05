@@ -31,10 +31,8 @@ SEARCH_AGENT_MAX_ITERATIONS = int(os.getenv("SEARCH_AGENT_MAX_ITERATIONS", "5"))
 SEARCH_AGENT_MAX_TOKENS = int(os.getenv("SEARCH_AGENT_MAX_TOKENS", "30000"))
 
 PAPERS_ROOT = ROOT_DIR / "papers"
-# Shared across all jobs (not per-job) so paper-qa's own incremental index
-# (keyed by file path) recognizes a paper it has already embedded before and
-# skips re-parsing/re-embedding/re-summarizing it. See 问题记录.txt for why
-# this only works when every job points at the same paper_directory.
+# Shared across jobs (not per-job) so paper-qa's incremental index
+# recognizes an already-embedded paper and skips re-parsing/re-embedding it.
 LIBRARY_DIR = PAPERS_ROOT / "library"
 LIBRARY_INDEX_DIR = LIBRARY_DIR / ".pqa_index"
 FRONTEND_DIR = ROOT_DIR / "frontend"

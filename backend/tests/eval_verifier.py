@@ -113,10 +113,9 @@ async def main():
     print(f"\nrecall: {caught}/{len(CASES)} = {recall:.0%}")
     print(f"false-positive floor (untouched answer): {len(baseline_issues)} issue(s)")
 
-    # Soft floor, not a strict gate — see module docstring. A single LLM-judge
-    # call has real run-to-run variance (documented in 问题记录.txt), so this
-    # is here to catch a wholesale regression (e.g. someone breaks the prompt
-    # and it stops catching anything), not to demand determinism.
+    # Soft floor, not a strict gate: a single LLM-judge call has real
+    # run-to-run variance, so this catches a wholesale regression (someone
+    # breaks the prompt and it stops catching anything), not every dip.
     assert recall >= 0.5, f"verifier recall on planted errors dropped to {recall:.0%}"
 
 

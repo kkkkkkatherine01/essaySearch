@@ -80,12 +80,10 @@ async def run_generate_stage(job: Job, selected: list[PaperCandidate]) -> None:
             job.citation_flags = flags
             job.log(f"引用自查完成：发现 {len(flags)} 处可疑引用" if flags else "引用自查完成：未发现可疑引用")
         except Exception as e:
-            # citation_flags stays None here — citation_check_failed is what
-            # lets the UI tell "we tried and every attempt failed" apart
-            # from "never ran"/"ran clean", instead of both looking like a
-            # silently hidden box. Doesn't affect job status: the review
-            # itself already generated fine, this is a QC step, not the
-            # critical path.
+            # citation_flags stays None; citation_check_failed lets the UI
+            # distinguish "checked, found nothing" from "never checked" from
+            # "checked, but every attempt failed". Doesn't fail the job —
+            # the review itself already generated fine.
             job.citation_check_failed = True
             job.log(f"引用自查失败，跳过（不影响已生成的综述）: {e}")
 

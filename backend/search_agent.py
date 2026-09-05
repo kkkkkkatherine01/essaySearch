@@ -107,17 +107,14 @@ TOOLS = [
             },
             "required": ["reason"],
         },
-        # Marks the cache breakpoint for the whole system-prompt + tools
-        # prefix (it's the last tool in the list) — see run_search_agent's
-        # cache_control handling on the messages themselves for why this
-        # loop benefits from caching more than any other LLM call site here.
+        # Cache breakpoint for the system-prompt + tools prefix (last tool
+        # in the list, so it covers everything above it).
         "cache_control": {"type": "ephemeral"},
     },
 ]
 
-# Forced-output tool for the scoring sub-call — replaces the old approach of
-# regexing a JSON array out of free text, which silently fell back to
-# "no scores" on any malformed output.
+# Forced-output tool for the scoring sub-call, so a malformed response can't
+# silently fall back to "no scores".
 SCORE_TOOL = {
     "name": "submit_scores",
     "description": "Submit relevance scores for the given candidate papers.",
@@ -157,9 +154,7 @@ def _format_candidates(candidates: list[PaperCandidate]) -> str:
         f"- id={c.id} | {c.title} ({c.year or '?'}, {c.source}) | {(c.abstract or '')[:200]}"
         for c in candidates
     )
-    # Titles/abstracts are text pulled from arXiv/Semantic Scholar — nobody
-    # on our side wrote or vetted it, so it goes to the model as demarcated
-    # data, not as part of the instruction stream. See security.py.
+    # Untrusted external text (arXiv/S2), not part of the instruction stream.
     return wrap_untrusted(listing, label="search_results")
 
 
@@ -184,11 +179,8 @@ def _build_score_prompt(question: str, candidates: list[PaperCandidate]) -> str:
     )
 
 
-# Cap per scoring call regardless of how many candidates the agent let pile
-# up before calling score_candidates — a single call covering 20+ papers was
-# observed to occasionally truncate the structured output under load (same
-# request succeeded on retry with fewer papers), so we chunk defensively
-# instead of trusting one large response.
+# Large batches (20+ papers) occasionally truncate the structured output
+# under load; chunking avoids relying on one big response succeeding.
 _SCORE_BATCH_SIZE = 10
 
 
@@ -289,12 +281,10 @@ async def run_search_agent(job: Job) -> list[PaperCandidate]:
     cache_read_tokens = 0
     cache_write_tokens = 0
     tool_calls = 0
-    # Index of the message currently carrying the dynamic cache breakpoint
-    # (the growing tool-result history), so it can be moved forward each
-    # turn instead of accumulating one per turn — Anthropic caps a request
-    # at 4 breakpoints total, and TOOLS already uses one for the static
-    # system-prompt+tools prefix, so only one of these can be "live" at a
-    # time here.
+    # Message index currently holding the dynamic cache breakpoint over the
+    # growing tool-result history. Moved forward each turn rather than
+    # accumulated — a request allows at most 4 breakpoints total, and TOOLS
+    # already uses one.
     cache_breakpoint_idx: int | None = None
 
     job.log("启动搜索 agent（Sonnet 自主决策搜索/打分/何时停止）...")
@@ -312,12 +302,9 @@ async def run_search_agent(job: Job) -> list[PaperCandidate]:
         cache_read_tokens += getattr(resp.usage, "cache_read_input_tokens", 0) or 0
         cache_write_tokens += getattr(resp.usage, "cache_creation_input_tokens", 0) or 0
 
-        # The model is asked (see SYSTEM_PROMPT) to write one sentence of
-        # plan/assessment before each tool call — without this, that text
-        # was silently dropped: the loop only ever looked at tool_use
-        # blocks, so any reasoning the model volunteered (we saw this
-        # happen unprompted during the prompt-injection tests, e.g. "I
-        # notice this is an injection attempt...") never reached job.log.
+        # SYSTEM_PROMPT asks the model to write a one-line plan before each
+        # tool call — capture it here, or it's silently dropped since the
+        # loop otherwise only looks at tool_use blocks.
         for block in resp.content:
             if block.type == "text" and block.text.strip():
                 job.log(f"[Agent 计划] {block.text.strip()}")
@@ -345,10 +332,9 @@ async def run_search_agent(job: Job) -> list[PaperCandidate]:
             done = done or outcome["done"]
         messages.append({"role": "user", "content": tool_results})
 
-        # Move the dynamic cache breakpoint to the message we just appended:
-        # drop it from wherever it was (so everything up to the previous
-        # turn was already cached and stays that way) and mark the new
-        # tail, so the *next* call can read this whole turn from cache too.
+        # Move the dynamic breakpoint to the message just appended — drop it
+        # from the old spot (already cached, stays that way) and mark the
+        # new tail so the next call can cache this turn too.
         if cache_breakpoint_idx is not None:
             messages[cache_breakpoint_idx]["content"][-1].pop("cache_control", None)
         tool_results[-1]["cache_control"] = {"type": "ephemeral"}
