@@ -7,3 +7,5 @@ papers/*/
 .pytest_cache/
 jobs.db
 .claude/scheduled_tasks.lock
+搜索Agent升级总结.txt
+问题记录.txt
