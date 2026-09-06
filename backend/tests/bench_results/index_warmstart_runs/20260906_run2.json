@@ -1,0 +1,32 @@
+{
+  "n_papers": 6,
+  "papers": [
+    "arxiv_quant_ph_0602157v1.pdf",
+    "arxiv_2601_01964v1.pdf",
+    "arxiv_cond_mat_9812291v1.pdf",
+    "arxiv_2507_19840v1.pdf",
+    "arxiv_2103_08833v5.pdf",
+    "arxiv_1807_09783v2.pdf"
+  ],
+  "trials": [
+    {
+      "trial": 1,
+      "cold": {
+        "label": "trial 1: cold (empty index)",
+        "wall_time": 111.23459000000003,
+        "generation_duration": 49.99700049999956,
+        "cost": 0.189652,
+        "total_tokens": 77181
+      },
+      "warm": {
+        "label": "trial 1: warm (index built this trial)",
+        "wall_time": 72.63905669999986,
+        "generation_duration": 54.13543220000065,
+        "cost": 0.196094,
+        "total_tokens": 78387
+      },
+      "wall_time_reduction_pct": 0.34697420379757915
+    }
+  ],
+  "mean_wall_time_reduction_pct": 0.34697420379757915
+}

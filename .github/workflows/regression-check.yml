@@ -1,0 +1,46 @@
+name: Regression check
+
+# Non-blocking by design: this is not a required PR status check. The
+# metrics it tracks (verifier recall, injection-defense scores) come from
+# real LLM calls, so a single noisy run can swing beyond a fixed threshold
+# without anything actually being broken — see check_regression.py's
+# tolerance comments. Gating merges on that would mean occasionally
+# blocking unrelated PRs over LLM noise, not a real regression. Instead
+# this runs on pushes to main (after a change already landed) and on a
+# weekly schedule (to catch drift with no code change at all, e.g. a
+# model update), plus workflow_dispatch for an on-demand run. A failure
+# here shows up as a red run in the Actions tab and GitHub's default
+# email-on-failure notification — investigate it like any other bug
+# report, not as a merge blocker.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - ".github/workflows/regression-check.yml"
+  schedule:
+    - cron: "0 3 * * 1" # every Monday 03:00 UTC
+  workflow_dispatch: {}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Run regression check
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          set -o pipefail
+          python -m backend.tests.check_regression 2>&1 | tee /tmp/regression_output.txt
+          status=$?
+          { echo '```'; cat /tmp/regression_output.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          exit $status

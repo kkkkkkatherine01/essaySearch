@@ -1,0 +1,61 @@
+{
+  "query": "prompt injection defenses for LLM agents",
+  "n_calls": 8,
+  "records": [
+    {
+      "input_tokens": 91,
+      "output_tokens": 189,
+      "cache_creation_input_tokens": 1921,
+      "cache_read_input_tokens": 0
+    },
+    {
+      "input_tokens": 2,
+      "output_tokens": 94,
+      "cache_creation_input_tokens": 2704,
+      "cache_read_input_tokens": 1921
+    },
+    {
+      "input_tokens": 1968,
+      "output_tokens": 478,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0
+    },
+    {
+      "input_tokens": 2322,
+      "output_tokens": 584,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0
+    },
+    {
+      "input_tokens": 2,
+      "output_tokens": 235,
+      "cache_creation_input_tokens": 1502,
+      "cache_read_input_tokens": 4625
+    },
+    {
+      "input_tokens": 2,
+      "output_tokens": 118,
+      "cache_creation_input_tokens": 1951,
+      "cache_read_input_tokens": 6127
+    },
+    {
+      "input_tokens": 2250,
+      "output_tokens": 606,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0
+    },
+    {
+      "input_tokens": 2,
+      "output_tokens": 247,
+      "cache_creation_input_tokens": 873,
+      "cache_read_input_tokens": 8078
+    }
+  ],
+  "total_input": 6639,
+  "total_cache_write": 8951,
+  "total_cache_read": 20751,
+  "total_output": 2551,
+  "actual_input_cost_usd": 0.0398057,
+  "hypothetical_input_cost_usd": 0.072682,
+  "reduction_pct": 0.45233070086128613
+}

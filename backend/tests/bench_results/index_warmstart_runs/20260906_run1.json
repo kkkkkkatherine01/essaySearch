@@ -1,0 +1,33 @@
+{
+  "n_papers": 6,
+  "papers": [
+    "arxiv_quant_ph_0602157v1.pdf",
+    "arxiv_2601_01964v1.pdf",
+    "arxiv_cond_mat_9812291v1.pdf",
+    "arxiv_2507_19840v1.pdf",
+    "arxiv_2103_08833v5.pdf",
+    "arxiv_1807_09783v2.pdf"
+  ],
+  "trials": [
+    {
+      "trial": 1,
+      "cold": {
+        "label": "trial 1: cold (empty index)",
+        "wall_time": 113.73,
+        "generation_duration": 53.53,
+        "cost": 0.1911,
+        "total_tokens": 77847
+      },
+      "warm": {
+        "label": "trial 1: warm (index built this trial)",
+        "wall_time": 67.40,
+        "generation_duration": 48.64,
+        "cost": 0.1904,
+        "total_tokens": 77195
+      },
+      "wall_time_reduction_pct": 0.407
+    }
+  ],
+  "mean_wall_time_reduction_pct": 0.407,
+  "note": "Reconstructed from console log (Bash task bxgcyn3dm) after the original run was overwritten by a second same-named run; wall_time/generation_duration here are rounded to 2dp as printed, not the full-precision floats from the live run."
+}
