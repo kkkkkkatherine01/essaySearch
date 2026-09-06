@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from . import config
 from .download import download_pdf
 from .job_manager import Job, JobStatus
@@ -49,7 +51,11 @@ async def run_generate_stage(job: Job, selected: list[PaperCandidate]) -> None:
 
         job.set_status(JobStatus.GENERATING)
         job.log("正在收集证据并生成带引用的综述（已在共享库中的论文会跳过重新索引，可能需要几分钟）...")
-        result = await run_paperqa(job.query)
+        filenames = [Path(d["local_path"]).name for d in downloaded]
+        result = await run_paperqa(job.query, filenames)
+
+        if result["unindexed_papers"]:
+            job.log(f"以下论文未能建立索引，已跳过（不影响其余论文的综述生成）: {result['unindexed_papers']}")
 
         job.answer = result["answer"]
         job.references = result["references"]

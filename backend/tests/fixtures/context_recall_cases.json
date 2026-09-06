@@ -1,0 +1,71 @@
+[
+  {
+    "name": "sign_language_methods",
+    "query": "What architectural approaches exist for continuous sign language recognition?",
+    "filenames": [
+      "arxiv_2103_08833v5.pdf",
+      "arxiv_2607_11341v1.pdf",
+      "arxiv_2412_11553v2.pdf"
+    ],
+    "key_points": [
+      "Traditional CSLR pipelines use a three-stage architecture: spatial feature extraction, temporal modeling, then sequence alignment (e.g. via CTC or HMM)",
+      "AutoSign uses an autoregressive decoder-only transformer to directly translate pose sequences to text, avoiding gloss annotations and alignment mechanisms",
+      "MediaPipe and OpenPose are used as landmark/pose detection tools to support real-time recognition",
+      "CTC-based alignment methods can overfit and suffer from error propagation"
+    ]
+  },
+  {
+    "name": "curse_of_dimensionality",
+    "query": "How do neural networks overcome the curse of dimensionality in function approximation?",
+    "filenames": [
+      "arxiv_2105_04026v2.pdf"
+    ],
+    "key_points": [
+      "Barron's theorem shows neural networks can approximate functions with bounded Fourier moments at a dimension-independent rate of n^(-1/2)",
+      "The manifold assumption allows dimension-independent approximation when the target function is supported on a low-dimensional manifold embedded in high-dimensional space",
+      "PDE-based structural assumptions are an alternative route to avoiding the curse of dimensionality, in contrast to classical numerical methods like finite elements which still suffer from it"
+    ]
+  },
+  {
+    "name": "quantum_error_correction",
+    "query": "What approaches exist for fault-tolerant quantum error correction and decoding?",
+    "filenames": [
+      "arxiv_2406_17653v2.pdf",
+      "arxiv_2605_17156v2.pdf",
+      "arxiv_quant_ph_0602157v1.pdf"
+    ],
+    "key_points": [
+      "Transversal algorithmic fault tolerance allows fault-tolerant logical operations to be performed with only a constant number of syndrome extraction rounds, instead of scaling with the code distance",
+      "The Sparse Mamba Decoder processes only the active defect/detection events in a syndrome (a small fraction of the total) using a Mamba state-space backbone, achieving lower complexity than dense decoders that process the full syndrome array",
+      "Classical and quantum error correction share the same basic principle of adding redundancy to protect information against noise, though quantum channels behave differently from classical ones",
+      "Concatenated codes are a construction used for fault-tolerant quantum computation"
+    ]
+  },
+  {
+    "name": "sign_language_deep_learning",
+    "query": "What recent deep learning approaches improve sign language recognition and generation?",
+    "filenames": [
+      "arxiv_2507_19840v1.pdf",
+      "arxiv_2408_08544v1.pdf",
+      "arxiv_2601_01964v1.pdf"
+    ],
+    "key_points": [
+      "AutoSign uses an autoregressive decoder-only transformer to directly translate pose sequences to text, avoiding gloss annotations and alignment mechanisms",
+      "A multimodal sign language pre-training framework combines sign-text contrastive learning with masked pose modeling, trained on a large-scale dataset of about 1.5 million samples",
+      "CSF enables direct multilingual-to-sign-language translation without using English as an intermediary, using a nine-slot semantic schema"
+    ]
+  },
+  {
+    "name": "deep_learning_theory_pair",
+    "query": "What theoretical limitations and advances exist in modern deep learning models?",
+    "filenames": [
+      "arxiv_2105_04026v2.pdf",
+      "arxiv_2306_11113v2.pdf"
+    ],
+    "key_points": [
+      "Barron's theorem shows neural networks can approximate functions with bounded Fourier moments at a dimension-independent rate of n^(-1/2)",
+      "Existing evidential deep learning models suffer from a fundamental limitation: their activation functions create zero-evidence regions that prevent the model from learning from training samples that fall into them",
+      "A regularized evidential model (RED) with a positive-evidence regularizer is proposed to address the zero-evidence-region learning deficiency"
+    ]
+  }
+]

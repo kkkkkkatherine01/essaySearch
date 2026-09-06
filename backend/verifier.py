@@ -106,6 +106,15 @@ def _extract_citation_occurrences(answer: str) -> list[tuple[str, str]]:
     return occurrences
 
 
+def extract_cited_sources(answer: str) -> set[str]:
+    """Every distinct citation key referenced anywhere in the answer body
+    (excludes the References list — a bare citation list isn't "usage").
+    Used both by check_citation_keys_exist below and by the context-precision
+    eval metric (backend/tests/rag_eval.py), which needs to know which of
+    the retrieved evidence chunks actually made it into the generated text."""
+    return {key for key, _sentence in _extract_citation_occurrences(answer)}
+
+
 def check_citation_keys_exist(answer: str, evidence: list[dict]) -> list[dict]:
     """Deterministic layer: pure string comparison, no LLM call — does every
     citation key in the answer exist in the evidence pool?

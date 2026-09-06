@@ -15,6 +15,7 @@ what the actual regression tests check would be worse than no baseline.
 
 from backend.tests.eval_verifier import CASES as VERIFIER_CASES
 from backend.tests.eval_verifier import FIXTURE_PATH, _issue_text
+from backend.tests.rag_eval import compute_context_precision
 from backend.tests.test_prompt_injection import SCORING_PAYLOADS, ORCHESTRATOR_PAYLOADS
 from backend.tests.test_prompt_injection import _score_with_payload
 from backend.security import scan_for_injection
@@ -61,6 +62,17 @@ async def measure_verifier() -> dict:
     }
 
 
+async def measure_context_precision() -> dict:
+    """Cheap half of the RAG-quality eval (see rag_eval.py) — pure
+    computation on the fixed sample_review.json fixture, no API calls, so
+    it belongs in the fast rolling baseline alongside the verifier metrics.
+    The expensive half (context recall, answer relevance — real
+    run_paperqa generations) stays out of this baseline; run those by hand
+    via `python -m backend.tests.rag_eval`."""
+    data = json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))
+    return {"context_precision": compute_context_precision(data["answer"], data["evidence"])}
+
+
 async def measure_injection_defense() -> dict:
     # Heuristic scanner is pure regex — deterministic, no LLM call, no noise.
     all_payloads = {**SCORING_PAYLOADS, **ORCHESTRATOR_PAYLOADS}
@@ -83,5 +95,6 @@ async def measure_injection_defense() -> dict:
 
 async def measure_all() -> dict:
     verifier_metrics = await measure_verifier()
+    context_precision_metrics = await measure_context_precision()
     injection_metrics = await measure_injection_defense()
-    return {**verifier_metrics, **injection_metrics}
+    return {**verifier_metrics, **context_precision_metrics, **injection_metrics}

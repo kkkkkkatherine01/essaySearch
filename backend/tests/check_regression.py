@@ -34,6 +34,10 @@ METRIC_SPECS = {
     # LLM noise.
     "verifier_deterministic_layer_recall": {"direction": "higher_is_better", "tolerance": 0.05},
     "verifier_false_positive_count": {"direction": "lower_is_better", "tolerance": 2.0},
+    # Pure computation on a fixed fixture (rag_eval.compute_context_precision)
+    # — no LLM call, no noise. Drift here means the fixture changed or the
+    # citation-extraction regex it depends on broke, not run-to-run variance.
+    "context_precision": {"direction": "higher_is_better", "tolerance": 0.05},
     "injection_heuristic_hit_rate": {"direction": "higher_is_better", "tolerance": 0.17},
     "injection_avg_scoring_attack_score": {"direction": "lower_is_better", "tolerance": 2.0},
 }

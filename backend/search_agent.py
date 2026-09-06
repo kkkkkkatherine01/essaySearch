@@ -7,7 +7,7 @@ from .job_manager import Job
 from .models import PaperCandidate
 from .search.arxiv_search import search_arxiv
 from .search.merge import merge_into_pool
-from .search.semantic_scholar_search import search_semantic_scholar
+from .search.semantic_scholar_search import get_citation_neighbors, search_semantic_scholar
 from .security import scan_for_injection, wrap_untrusted
 
 _client: anthropic.Anthropic | None = None
@@ -29,6 +29,10 @@ Tools:
 - search_arxiv(query): search arXiv. `query` must be a concise English keyword string \
 (3-8 words), not a natural-language sentence.
 - search_semantic_scholar(query): search Semantic Scholar. Same query format.
+- expand_citations(paper_ids): given 1-2 ids of candidates already in the pool, fetch their \
+references and citing papers from Semantic Scholar's citation graph ("snowballing") and add \
+any new open-access ones to the pool. This is not a keyword search — it only works on ids \
+already returned by a previous search_arxiv/search_semantic_scholar/expand_citations call.
 - score_candidates(): score every not-yet-scored paper currently in the candidate pool \
 for relevance to the research question (0-10), using a cheap model. Call this after each \
 round of searching, before deciding whether to search again.
@@ -47,6 +51,9 @@ Guidance:
 score.
 - If the top scored candidates are weak or off-topic, try ONE differently-worded query \
 (different angle or synonyms) before giving up — don't repeat an identical query.
+- If 1-2 candidates already score very high (>=8) but the pool is still thin, try \
+expand_citations on those before trying another keyword guess — citation neighbors of a \
+strongly on-topic paper are usually more precisely relevant than a reworded search.
 - If a tool call errors (e.g. rate limited), don't immediately retry the same source — try \
 the other source, a reworded query, or just move on.
 - Stop as soon as results look good enough (e.g. you already have 6+ candidates scored >=7 \
@@ -83,6 +90,27 @@ TOOLS = [
                 "query": {"type": "string", "description": "Concise English keyword query (3-8 words)."}
             },
             "required": ["query"],
+        },
+    },
+    {
+        "name": "expand_citations",
+        "description": (
+            "Snowball outward from 1-2 strong candidates already in the pool by fetching their "
+            "references and citing papers from Semantic Scholar's citation graph. Returns newly "
+            "found candidates that have a downloadable PDF (duplicates already in the pool are "
+            "skipped). Use this instead of another keyword search when a couple of candidates "
+            "are already clearly on-topic but the pool is still thin."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "paper_ids": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "1-2 ids of candidates already in the pool to snowball from (not a search query).",
+                }
+            },
+            "required": ["paper_ids"],
         },
     },
     {
@@ -235,6 +263,54 @@ async def _tool_search(job: Job, pool: dict[str, PaperCandidate], label: str, fn
     return {"content": _format_candidates(added), "is_error": False, "done": False}
 
 
+# Cap seeds per call — each seed costs 2 rate-limited S2 requests
+# (references + citations), and an unbounded fan-out from a large id list
+# could stall the agent's turn budget.
+_SNOWBALL_MAX_SEEDS = 2
+
+
+async def _tool_expand_citations(job: Job, pool: dict[str, PaperCandidate], tool_input: dict) -> dict:
+    ids = [str(i) for i in (tool_input.get("paper_ids") or [])][:_SNOWBALL_MAX_SEEDS]
+    if not ids:
+        return {"content": "Error: paper_ids is required", "is_error": True, "done": False}
+
+    by_id = {c.id: c for c in pool.values()}
+    added_all: list[PaperCandidate] = []
+    errors: list[str] = []
+    for pid in ids:
+        seed = by_id.get(pid)
+        if seed is None:
+            errors.append(f"id={pid} not found in the current pool")
+            continue
+        job.log(f'[Agent] expand_citations(id="{pid}", title="{seed.title[:40]}")')
+        try:
+            neighbors = await get_citation_neighbors(
+                seed.source, seed.id, config.MAX_CANDIDATES_PER_SOURCE, config.SEMANTIC_SCHOLAR_API_KEY
+            )
+        except Exception as e:
+            job.log(f"[Agent] expand_citations 失败（id={pid}），跳过: {e}")
+            errors.append(f"id={pid}: {e}")
+            continue
+        added = merge_into_pool(pool, neighbors)
+        added_all.extend(added)
+        job.log(
+            f"[Agent] expand_citations(id={pid}) 返回 {len(neighbors)} 篇引用关联论文，"
+            f"其中 {len(added)} 篇为新候选，候选池共 {len(pool)} 篇"
+        )
+
+    for c in added_all:
+        hits = scan_for_injection(f"{c.title} {c.abstract or ''}")
+        if hits:
+            job.log(f"[Security] ⚠ 候选论文摘要中检测到疑似注入内容（{hits[0]}）: {c.title[:60]}")
+
+    if not added_all and errors:
+        return {"content": "Errors: " + "; ".join(errors), "is_error": True, "done": False}
+    content = _format_candidates(added_all)
+    if errors:
+        content += "\n(some seeds failed: " + "; ".join(errors) + ")"
+    return {"content": content, "is_error": False, "done": False}
+
+
 async def _tool_score(job: Job, pool: dict[str, PaperCandidate], question: str) -> dict:
     unscored = [c for c in pool.values() if c.relevance_score is None]
     if not unscored:
@@ -255,6 +331,8 @@ async def _execute_tool(name: str, tool_input: dict, pool: dict, question: str, 
         return await _tool_search(job, pool, "search_arxiv", _run_search_arxiv, tool_input)
     if name == "search_semantic_scholar":
         return await _tool_search(job, pool, "search_semantic_scholar", _run_search_s2, tool_input)
+    if name == "expand_citations":
+        return await _tool_expand_citations(job, pool, tool_input)
     if name == "score_candidates":
         return await _tool_score(job, pool, question)
     if name == "finish_search":
@@ -266,9 +344,10 @@ async def _execute_tool(name: str, tool_input: dict, pool: dict, question: str, 
 
 async def run_search_agent(job: Job) -> list[PaperCandidate]:
     """Search-stage agent: Sonnet drives a tool-use loop over
-    search_arxiv / search_semantic_scholar / score_candidates, deciding for
-    itself whether the candidate pool looks good enough or a differently
-    worded search is worth trying — instead of a single hardcoded
+    search_arxiv / search_semantic_scholar / expand_citations / score_candidates,
+    deciding for itself whether the candidate pool looks good enough, a
+    differently worded search is worth trying, or a strong candidate is worth
+    snowballing via its citation graph — instead of a single hardcoded
     search-then-rerank pass. Hard caps on turns and tokens (config.
     SEARCH_AGENT_MAX_ITERATIONS / _MAX_TOKENS) bound the worst case; a
     scoring safety net at the end guarantees the user never sees an

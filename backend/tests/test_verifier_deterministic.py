@@ -9,7 +9,8 @@ until one day it didn't."""
 import json
 
 from backend.tests.eval_verifier import FIXTURE_PATH
-from backend.verifier import check_citation_density, check_citation_keys_exist
+from backend.tests.rag_eval import compute_context_precision
+from backend.verifier import check_citation_density, check_citation_keys_exist, extract_cited_sources
 
 
 def _load_fixture():
@@ -69,3 +70,33 @@ def test_citation_density_flags_a_paragraph_with_no_citations_at_all():
 def test_citation_density_ignores_headings_and_the_question_echo():
     answer = "Question: something\n\n# A Heading\n\nA cited claim (Smith2020 pages 1-1).\n"
     assert check_citation_density(answer) == []
+
+
+def test_extract_cited_sources_matches_the_fixture_answer():
+    answer, _evidence = _load_fixture()
+    assert extract_cited_sources(answer) == {
+        "Bao2026 pages 2-3",
+        "Bao2026 pages 8-9",
+        "Boddu2026 pages 3-4",
+        "Johnny2025 pages 1-2",
+        "Johnny2025 pages 2-3",
+    }
+
+
+def test_context_precision_on_the_real_fixture():
+    """Documents the real, already-measured number (7/15 evidence chunks
+    actually got cited) rather than a made-up round value — a regression
+    here means the extraction logic changed, not that the fixture is wrong."""
+    answer, evidence = _load_fixture()
+    assert len(evidence) == 15
+    assert compute_context_precision(answer, evidence) == 7 / 15
+
+
+def test_context_precision_is_zero_with_no_evidence():
+    assert compute_context_precision("anything (Smith2020 pages 1-1)", []) == 0.0
+
+
+def test_context_precision_is_one_when_every_chunk_is_cited():
+    evidence = [{"source": "Smith2020 pages 1-1"}, {"source": "Jones2021 pages 2-2"}]
+    answer = "A claim (Smith2020 pages 1-1). Another claim (Jones2021 pages 2-2)."
+    assert compute_context_precision(answer, evidence) == 1.0
