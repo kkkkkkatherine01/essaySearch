@@ -1,0 +1,22 @@
+{
+  "before": {
+    "label": "BEFORE (full text for all evidence)",
+    "n_trials": 20,
+    "n_failures": 5,
+    "failure_rate": 0.25,
+    "failure_reasons": [
+      "malformed 'issues' field (not a list)",
+      "malformed 'issues' field (not a list)",
+      "malformed 'issues' field (not a list)",
+      "malformed 'issues' field (not a list)",
+      "malformed 'issues' field (not a list)"
+    ]
+  },
+  "after": {
+    "label": "AFTER (current: trimmed to cited sources)",
+    "n_trials": 20,
+    "n_failures": 0,
+    "failure_rate": 0.0,
+    "failure_reasons": []
+  }
+}

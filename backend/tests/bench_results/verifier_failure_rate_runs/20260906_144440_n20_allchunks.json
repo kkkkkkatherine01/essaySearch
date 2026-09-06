@@ -1,0 +1,104 @@
+{
+  "per_chunk": [
+    {
+      "before": {
+        "label": "chunk 0 BEFORE",
+        "n_trials": 20,
+        "n_failures": 6,
+        "failure_rate": 0.3,
+        "failure_reasons": [
+          "malformed 'issues' field (not a list)",
+          "malformed 'issues' field (not a list)",
+          "malformed 'issues' field (not a list)",
+          "malformed 'issues' field (not a list)",
+          "malformed 'issues' field (not a list)",
+          "malformed 'issues' field (not a list)"
+        ]
+      },
+      "after": {
+        "label": "chunk 0 AFTER",
+        "n_trials": 20,
+        "n_failures": 1,
+        "failure_rate": 0.05,
+        "failure_reasons": [
+          "malformed 'issues' field (not a list)"
+        ]
+      }
+    },
+    {
+      "before": {
+        "label": "chunk 1 BEFORE",
+        "n_trials": 20,
+        "n_failures": 2,
+        "failure_rate": 0.1,
+        "failure_reasons": [
+          "malformed 'issues' field (not a list)",
+          "malformed 'issues' field (not a list)"
+        ]
+      },
+      "after": {
+        "label": "chunk 1 AFTER",
+        "n_trials": 20,
+        "n_failures": 1,
+        "failure_rate": 0.05,
+        "failure_reasons": [
+          "malformed 'issues' field (not a list)"
+        ]
+      }
+    },
+    {
+      "before": {
+        "label": "chunk 2 BEFORE",
+        "n_trials": 20,
+        "n_failures": 8,
+        "failure_rate": 0.4,
+        "failure_reasons": [
+          "malformed 'issues' field (not a list)",
+          "malformed 'issues' field (not a list)",
+          "malformed 'issues' field (not a list)",
+          "malformed 'issues' field (not a list)",
+          "malformed 'issues' field (not a list)",
+          "malformed 'issues' field (not a list)",
+          "malformed 'issues' field (not a list)",
+          "malformed 'issues' field (not a list)"
+        ]
+      },
+      "after": {
+        "label": "chunk 2 AFTER",
+        "n_trials": 20,
+        "n_failures": 0,
+        "failure_rate": 0.0,
+        "failure_reasons": []
+      }
+    },
+    {
+      "before": {
+        "label": "chunk 3 BEFORE",
+        "n_trials": 20,
+        "n_failures": 4,
+        "failure_rate": 0.2,
+        "failure_reasons": [
+          "malformed 'issues' field (not a list)",
+          "malformed 'issues' field (not a list)",
+          "malformed 'issues' field (not a list)",
+          "malformed 'issues' field (not a list)"
+        ]
+      },
+      "after": {
+        "label": "chunk 3 AFTER",
+        "n_trials": 20,
+        "n_failures": 0,
+        "failure_rate": 0.0,
+        "failure_reasons": []
+      }
+    }
+  ],
+  "aggregate": {
+    "before_failures": 20,
+    "before_trials": 80,
+    "before_rate": 0.25,
+    "after_failures": 2,
+    "after_trials": 80,
+    "after_rate": 0.025
+  }
+}
